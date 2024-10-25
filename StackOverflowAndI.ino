@@ -1,20 +1,95 @@
+// #include <SevSeg.h>
+
+// SevSeg sevseg;  // Instantiate a seven-segment controller object
+
+// // Define joystick and LED pins
+// const int VRx = A0;
+// const int VRy = A1;
+// const int SW = 4;
+
+// const int LED1 = A2;
+// const int LED2 = A3;
+// const int LED3 = A4;
+
+// // Variables to hold joystick readings
+// int xValue = 0;
+// int yValue = 0;
+// int buttonState = 0;
+
+// void setup() {
+//   // 7-Segment display setup
+//   byte segmentPins[] = {2, 3, 4, 5, 6, 7, 8, 9}; // Pins for a, b, c, d, e, f, g, DP
+//   byte digitPins[] = {10, 11, 12, 13};           // Pins for digits 1 to 4
+  
+//   sevseg.begin(COMMON_CATHODE, 4, digitPins, segmentPins);
+//   sevseg.setBrightness(90);  // Set brightness (0-100)
+
+//   // Initialize joystick button
+//   pinMode(SW, INPUT_PULLUP);
+  
+//   // Initialize LEDs
+//   pinMode(LED1, OUTPUT);
+//   pinMode(LED2, OUTPUT);
+//   pinMode(LED3, OUTPUT);
+
+//   Serial.begin(9600);
+// }
+
+// void loop() {
+//   // Call the function to read joystick values
+//   readJoystick();
+
+//   // Display joystick values on the 7-segment display
+//   int displayValue = (xValue / 10) * 100 + (yValue / 10);
+//   sevseg.setNumber(700);
+//   sevseg.refreshDisplay();
+
+//   // Control LEDs based on joystick movements
+//   if (xValue > 800) {
+//     digitalWrite(LED1, HIGH);  // LED1 lights up if joystick pushed to the right
+//   } else {
+//     digitalWrite(LED1, LOW);
+//   }
+
+//   if (yValue > 800) {
+//     digitalWrite(LED2, HIGH);  // LED2 lights up if joystick pushed upward
+//   } else {
+//     digitalWrite(LED2, LOW);
+//   }
+
+//   if (buttonState == LOW) {
+//     digitalWrite(LED3, HIGH);  // LED3 lights up if joystick button pressed
+//   } else {
+//     digitalWrite(LED3, LOW);
+//   }
+
+//   delay(100);  // Small delay for stability
+// }
+
+// // Function to read joystick values
+// void readJoystick() {
+//   xValue = analogRead(VRx);   // Read X-axis
+//   yValue = analogRead(VRy);   // Read Y-axis
+//   buttonState = digitalRead(SW);  // Read button state
+// }
+
 #include "SevSeg.h"
 SevSeg sevseg;
 
 // Joystick Pins
-const int SW_pin = 2;
+const int SW_pin = A5;
 const int X_pin = A0;
 const int Y_pin = A1;
 
 // LED Pins
-const int Q0_PIN = 13;
-const int Q1_PIN = 12;
-const int Q2_PIN = 11;
+const int Q0_PIN = A2;
+const int Q1_PIN = A3;
+const int Q2_PIN = A4;
 const int IR_RECEIVE_PIN = 10;
 
 // 4-Digit 7 Segment Pins
-const byte segmentPins[] = {1, 2, 3, 4, 5, 6, 7,8}; // Segment pins A-G
-const byte digitPins[] = {A0, A1, A2, A3}; // Digit pins D1-D4
+  byte segmentPins[] = {2, 3, 4, 5, 6, 7, 8, 9}; // Pins for a, b, c, d, e, f, g, DP
+  byte digitPins[] = {10, 11, 12, 13}; 
 
 const byte numDigits = 4;
 
@@ -95,11 +170,11 @@ void handleJoystick() {
   int xCoord = analogRead(X_pin);
   int yCoord = analogRead(Y_pin);
 
-  if (xCoord <= 400) {
-    currentQuestion > 0? currentQuestion = currentQuestion-1: currentQuestion = 2;
-  } else if (xCoord >= 700) {
-    currentQuestion < 2? currentQuestion = currentQuestion+1: currentQuestion = 0;
-  }
+  // if (xCoord <= 400) {
+  //   currentQuestion > 0? currentQuestion = currentQuestion-1: currentQuestion = 2;
+  // } else if (xCoord >= 700) {
+  //   currentQuestion < 2? currentQuestion = currentQuestion+1: currentQuestion = 0;
+  // }
 
   if (yCoord >= 700) {
     if (gameState == 0) {
@@ -113,27 +188,40 @@ void handleJoystick() {
         q2Index > 0? q2Index = q2Index - 1: q2Index = sizeof(q2Values) / sizeof(q2Values[0])-1;
       }
     }
+  } else if (yCoord <= 300) {
+    if (gameState == 0) {
+      questionCodeIndex < 0? questionCodeIndex = questionCodeIndex-1: questionCodeIndex;
+    } else {
+      if (currentQuestion == 0) {
+        q0Index > 0? q0Index = q0Index - 1: q0Index = sizeof(q0Values) / sizeof(q0Values[0])-1;
+      } else if (currentQuestion == 1) {
+        q1Index > 0? q1Index = q1Index - 1: q1Index = sizeof(q1Values) / sizeof(q1Values[0])-1;
+      } else {
+        q2Index > 0? q2Index = q2Index - 1: q2Index = sizeof(q2Values) / sizeof(q2Values[0])-1;
+      }
+    }    
   }
 
   if (press == 0) {
-    if (gameState == 0) {
-      if (q0Code != -1 && q1Code != -1 && q2Code != -1) {
-        gameState = 1;
-      } else if (currentQuestion == 0) {
-        q0Code = QUESTION_CODE_LIST[questionCodeIndex];
-        q0Values = QUESTION_VALUES_LIST[questionCodeIndex];
-        currentQuestion = currentQuestion+1;
-      } else if (currentQuestion == 1) {
-        q1Code = QUESTION_CODE_LIST[questionCodeIndex];
-        q1Values = QUESTION_VALUES_LIST[questionCodeIndex];
-        currentQuestion = currentQuestion+1;
-      } else {
-        q2Code = QUESTION_CODE_LIST[questionCodeIndex];
-        q2Values = QUESTION_VALUES_LIST[questionCodeIndex];
-      }
-    } else {
-      reset();
-    } 
+    currentQuestion > 0? currentQuestion = currentQuestion-1: currentQuestion = 2;
+    // if (gameState == 0) {
+    //   if (q0Code != -1 && q1Code != -1 && q2Code != -1) {
+    //     gameState = 1;
+    //   } else if (currentQuestion == 0) {
+    //     q0Code = QUESTION_CODE_LIST[questionCodeIndex];
+    //     q0Values = QUESTION_VALUES_LIST[questionCodeIndex];
+    //     currentQuestion = currentQuestion+1;
+    //   } else if (currentQuestion == 1) {
+    //     q1Code = QUESTION_CODE_LIST[questionCodeIndex];
+    //     q1Values = QUESTION_VALUES_LIST[questionCodeIndex];
+    //     currentQuestion = currentQuestion+1;
+    //   } else {
+    //     q2Code = QUESTION_CODE_LIST[questionCodeIndex];
+    //     q2Values = QUESTION_VALUES_LIST[questionCodeIndex];
+    //   }
+    // } else {
+    //   reset();
+    // } 
   }
 
 }
@@ -142,6 +230,7 @@ void updateLEDs() {
   digitalWrite(Q0_PIN, currentQuestion == 0? HIGH: LOW);
   digitalWrite(Q1_PIN, currentQuestion == 1? HIGH: LOW);
   digitalWrite(Q2_PIN, currentQuestion == 2? HIGH: LOW);
+
 }
 
 void updateScreen() {
@@ -160,8 +249,12 @@ void updateScreen() {
 }
 
 void loop() {
-
+  Serial.print("curr question \n");
+  Serial.print(currentQuestion);
   handleJoystick();
   updateScreen();
   updateLEDs();
+  Serial.print("curr question \n");
+  Serial.print(currentQuestion);
+  // currentQuestion > 0? currentQuestion = currentQuestion-1: currentQuestion = 2;
 }
