@@ -58,8 +58,10 @@ const int AI_CHALLENGES_VALUES[] = {66, 26, 32, 31, 63, 13};
 
 const int CODE_LIST_SIZE = 6;
 
-const int QUESTION_VALUES_LIST[][CODE_LIST_SIZE] = {EDUCATION_VALUES, LANGUAGES_VALUES, OP_SYSTEM_VALUES,
-AI_BENEFIT_VALUES, AI_IN_DEV_VALUES, AI_CHALLENGES_VALUES};
+const int* QUESTION_VALUES_LIST[CODE_LIST_SIZE] = {
+    EDUCATION_VALUES, LANGUAGES_VALUES, OP_SYSTEM_VALUES,
+    AI_BENEFIT_VALUES, AI_IN_DEV_VALUES, AI_CHALLENGES_VALUES
+};
 
 const int QUESTION_CODE_LIST[] = {EDUCATION, LANGUAGES, OP_SYSTEM, 
   AI_BENEFIT, AI_IN_DEV, AI_CHALLENGES};
@@ -114,11 +116,11 @@ void handleVertical(bool up) {
       questionCodeIndex = questionCodeIndex > 0? questionCodeIndex-1: CODE_LIST_SIZE-1;
     } else {
       if (currentQuestion == 0) {
-        q0Index > 0? q0Index = q0Index - 1: q0Index = sizeof(q0Values) / sizeof(q0Values[0])-1;
+        q0Index = q0Index > 0? q0Index - 1: q0Size-1;
       } else if (currentQuestion == 1) {
-        q1Index > 0? q1Index = q1Index - 1: q1Index = sizeof(q1Values) / sizeof(q1Values[0])-1;
+        q1Index = q1Index > 0? q1Index - 1: q1Size-1;
       } else {
-        q2Index > 0? q2Index = q2Index - 1: q2Index = sizeof(q2Values) / sizeof(q2Values[0])-1;
+        q2Index = q2Index > 0? q2Index - 1: q2Size-1;
       }
     }
   } else {
@@ -126,11 +128,11 @@ void handleVertical(bool up) {
     questionCodeIndex =  questionCodeIndex != CODE_LIST_SIZE-1? questionCodeIndex+1: 0;
     } else {
       if (currentQuestion == 0) {
-        q0Index > 0? q0Index = q0Index - 1: q0Index = sizeof(q0Values) / sizeof(q0Values[0])-1;
+        q0Index = q0Index != q0Size-1? q0Index+1: 0;
       } else if (currentQuestion == 1) {
-        q1Index > 0? q1Index = q1Index - 1: q1Index = sizeof(q1Values) / sizeof(q1Values[0])-1;
+        q1Index = q1Index != q1Size-1? q1Index+1: 0;
       } else {
-        q2Index > 0? q2Index = q2Index - 1: q2Index = sizeof(q2Values) / sizeof(q2Values[0])-1;
+        q2Index = q2Index != q2Size-1? q2Index+1: 0;
       }
     }
   }
@@ -138,8 +140,6 @@ void handleVertical(bool up) {
 
 void handlePress() {
   if (gameState == 0) {
-    // if (q0Code != -1 && q1Code != -1 && q2Code != -1) {
-    //   gameState = 1;
     if (currentQuestion == 0) {
       q0Code = QUESTION_CODE_LIST[questionCodeIndex];
       q0Values = QUESTION_VALUES_LIST[questionCodeIndex];
@@ -191,14 +191,14 @@ void loop() {
   } else {
     // sevseg.setNumber(9999);
     if (currentQuestion == 0) {
-      sevseg.setNumber(9999);
-    //   sevseg.setNumber(q0Values[q0Index]);
+      // sevseg.setNumber(9999);
+      sevseg.setNumber(q0Values[q0Index]);
     } else if (currentQuestion == 1) {
-      sevseg.setNumber(8888);
-    //   sevseg.setNumber(q1Values[q1Index]);
+      // sevseg.setNumber(8888);
+      sevseg.setNumber(q1Values[q1Index]);
     } else {
-      sevseg.setNumber(7777);
-    //   sevseg.setNumber(q2Values[q2Index]);
+      // sevseg.setNumber(7777);
+      sevseg.setNumber(q2Values[q2Index]);
     }
   }
   sevseg.refreshDisplay();
