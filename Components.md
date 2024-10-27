@@ -1,0 +1,15 @@
+The following components were used in this project:
+- 1x Elegoo Uno R3
+  - 2x male-to-male wire
+- 830 tie-points breadboard
+- 1x Joystick module
+- 5x male-to-male wire
+- 3x yellow LED
+  - 220$\omega$ resistor
+  - 9x male-to-male wire
+  - 6x female-to-female wire
+- 1x 4-digit 7 segment display (HS420361K-32)
+  - 4x 220$\omega$ resistor
+  - 12x female-to-female wire
+  - 8x male-to-male wire
+  - 4x female-to-male wire
