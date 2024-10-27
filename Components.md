@@ -3,7 +3,7 @@ The following components were used in this project:
   - 2x male-to-male wire
 - 830 tie-points breadboard
 - 1x Joystick module
-- 5x male-to-male wire
+  - 5x male-to-male wire
 - 3x yellow LED
   - 220$\omega$ resistor
   - 9x male-to-male wire
