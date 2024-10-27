@@ -6,6 +6,11 @@ const int SW_pin = A5;
 const int X_pin = A0;
 const int Y_pin = A1;
 
+// Joystick debounce handling
+const unsigned long DEBOUNCE_DELAY = 50; // Adjust debounce time as needed
+unsigned long lastPressTime = 0;
+unsigned long lastJoystickTime = 0;
+
 // LED Pins
 const int Q0_PIN = A2;
 const int Q1_PIN = A3;
@@ -49,12 +54,12 @@ const int AI_BENEFIT = 3201;
 const int AI_IN_DEV = 3204;
 const int AI_CHALLENGES = 3303;
 
-const int EDUCATION_VALUES[] = {10, 13, 41, 26, 11};
-const int LANGUAGES_VALUES[] = {62, 53, 51, 51, 39};
-const int OP_SYSTEM_VALUES[] = {60, 32,28,18, 17};
-const int AI_BENEFIT_VALUES[] = {81, 62, 59, 30, 25, 8};
-const int AI_IN_DEV_VALUES[] = {82, 68, 57, 40, 13, 27};
-const int AI_CHALLENGES_VALUES[] = {66, 26, 32, 31, 63, 13};
+const int EDUCATION_VALUES[] = {"1 10", "2 13", "3 41", "4 26", "5 11"};
+const int LANGUAGES_VALUES[] = {"1 62", "2 53", "3 51", "4 51", "5 39"};
+const int OP_SYSTEM_VALUES[] = {"1 60", "2 32","3 28","4 18", "5 17"};
+const int AI_BENEFIT_VALUES[] = {"1 81", "2 62", "3 59", "4 30", "5 25", "6  8"};
+const int AI_IN_DEV_VALUES[] = {"1 82", "2 68", "3 57", "4 40", "5 13", "6 27"};
+const int AI_CHALLENGES_VALUES[] = {"1 66", "2 26", "3 32", "4 31", "5 63", "6 13"};
 
 const int CODE_LIST_SIZE = 6;
 
@@ -172,16 +177,25 @@ void loop() {
   int xCoord = analogRead(X_pin);
   int yCoord = analogRead(Y_pin);
 
-  if (press == 0) {
-    handlePress();
-  } else if (yCoord > 900) {
-    handleVertical(true);
-  } else if (yCoord < 200) {
-    handleVertical(false);
-  } else if (gameState == 1 && xCoord > 900) {
-    handleHorizontal(true);
-  }else if (gameState == 1 && xCoord < 200) {
-    handleHorizontal(false);
+  unsigned long currentTime = millis();
+
+  if (currentTime - lastJoystickTime > DEBOUNCE_DELAY) {
+    if (press == 0) {
+      handlePress();
+      lastJoystickTime = currentTime;
+    } else if (yCoord > 900) {
+      handleVertical(true);
+      lastJoystickTime = currentTime;
+    } else if (yCoord < 200) {
+      handleVertical(false);
+      lastJoystickTime = currentTime;
+    } else if (gameState == 1 && xCoord > 900) {
+      handleHorizontal(true);
+      lastJoystickTime = currentTime;
+    }else if (gameState == 1 && xCoord < 200) {
+      handleHorizontal(false);
+      lastJoystickTime = currentTime;
+    } 
   } else {
     updateLEDs();
   }
@@ -189,16 +203,12 @@ void loop() {
   if (gameState == 0) {
       sevseg.setNumber(QUESTION_CODE_LIST[questionCodeIndex]);
   } else {
-    // sevseg.setNumber(9999);
     if (currentQuestion == 0) {
-      // sevseg.setNumber(9999);
-      sevseg.setNumber(q0Values[q0Index]);
+      sevseg.setChars(q0Values[q0Index]);
     } else if (currentQuestion == 1) {
-      // sevseg.setNumber(8888);
-      sevseg.setNumber(q1Values[q1Index]);
+      sevseg.setChars(q1Values[q1Index]);
     } else {
-      // sevseg.setNumber(7777);
-      sevseg.setNumber(q2Values[q2Index]);
+      sevseg.setChars(q2Values[q2Index]);
     }
   }
   sevseg.refreshDisplay();
