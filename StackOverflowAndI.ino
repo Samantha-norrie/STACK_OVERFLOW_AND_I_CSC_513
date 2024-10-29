@@ -7,7 +7,7 @@ const int X_pin = A0;
 const int Y_pin = A1;
 
 // Joystick debounce handling
-const unsigned long DEBOUNCE_DELAY = 50; // Adjust debounce time as needed
+const unsigned long DEBOUNCE_DELAY = 100;
 unsigned long lastPressTime = 0;
 unsigned long lastJoystickTime = 0;
 
@@ -17,7 +17,7 @@ const int Q1_PIN = A3;
 const int Q2_PIN = A4;
 
 // 4-Digit 7 Segment Pins
-byte segmentPins[] = {2, 3, 4, 5, 6, 7, 8, 9}; // Pins for a, b, c, d, e, f, g, DP
+byte segmentPins[] = {2, 3, 4, 5, 6, 7, 8, 9};
 byte digitPins[] = {10, 11, 12, 13}; 
 
 const byte numDigits = 4;
@@ -31,18 +31,18 @@ int gameState = 0;
 
 int currentQuestion = 0;
 
-int q0Code = -1;
-int q0Index = 0;
+int q0SelectIndex = 0;
+int q0ValueIndex = 0;
 int q0Size = -1;
 int *q0Values;
 
-int q1Code = -1;
-int q1Index = 0;
+int q1SelectIndex = 0;
+int q1ValueIndex = 0;
 int q1Size = -1;
 int *q1Values;
 
-int q2Code = -1;
-int q2Index = 0;
+int q2SelectIndex = 0;
+int q2ValueIndex = 0;
 int q2Size = -1;
 int *q2Values;
 
@@ -93,19 +93,31 @@ void reset() {
   gameState = 0;
   currentQuestion = 0;
 
-  q0Code = -1;
-  q0Index = 0;
+  q0ValueIndex = 0;
+  q0SelectIndex = 0;
   q0Size = -1;
 
-  q1Code = -1;
-  q1Index = 0;
+  q1ValueIndex = 0;
+  q1SelectIndex = 0;
   q1Size = -1;
 
-  q2Code = -1;
-  q2Index = 0;
+  q2ValueIndex = 0;
+  q2SelectIndex = 0;
   q2Size = -1;
 }
 
+void handleQuestionChoosing() {
+  if (currentQuestion == 0) {
+    q0Values = QUESTION_VALUES_LIST[q0SelectIndex];
+    q0Size = QUESTION_VALUES_LIST_SIZES[q0SelectIndex ];
+  } else if (currentQuestion == 1) {
+    q1Values = QUESTION_VALUES_LIST[q1SelectIndex];
+    q1Size = QUESTION_VALUES_LIST_SIZES[q1SelectIndex];
+  } else {
+    q2Values = QUESTION_VALUES_LIST[q2SelectIndex];
+    q2Size = QUESTION_VALUES_LIST_SIZES[q2SelectIndex];
+  }   
+}
 // Handle joystick
 void handleHorizontal(bool left) {
   if (left) {
@@ -113,31 +125,51 @@ void handleHorizontal(bool left) {
   } else {
     currentQuestion < 2? currentQuestion = currentQuestion+1: currentQuestion = 0;
   }
+
+  if (gameState == 0) {
+    handleQuestionChoosing();
+  }
 }
 
 void handleVertical(bool up) {
-  if(up) {
-    if (gameState == 0) {
-      questionCodeIndex = questionCodeIndex > 0? questionCodeIndex-1: CODE_LIST_SIZE-1;
-    } else {
-      if (currentQuestion == 0) {
-        q0Index = q0Index > 0? q0Index - 1: q0Size-1;
-      } else if (currentQuestion == 1) {
-        q1Index = q1Index > 0? q1Index - 1: q1Size-1;
+  if (up) {
+    if (currentQuestion == 0) {
+      if (gameState == 0) {
+        q0SelectIndex = q0SelectIndex > 0? q0SelectIndex-1: CODE_LIST_SIZE-1;
       } else {
-        q2Index = q2Index > 0? q2Index - 1: q2Size-1;
+        q0ValueIndex = q0ValueIndex > 0? q0ValueIndex - 1: q0Size-1;
+      }
+    } else if (currentQuestion == 1) {
+      if (gameState == 0) {
+        q1SelectIndex = q1SelectIndex > 0? q1SelectIndex-1: CODE_LIST_SIZE-1;
+      } else {
+        q1ValueIndex = q1ValueIndex > 0? q1ValueIndex - 1: q1Size-1;
+      }
+    } else {
+      if (gameState == 0) {
+        q2SelectIndex = q2SelectIndex > 0? q2SelectIndex-1: CODE_LIST_SIZE-1;
+      } else {
+        q2ValueIndex = q2ValueIndex > 0? q2ValueIndex - 1: q2Size-1;
       }
     }
   } else {
-    if (gameState == 0) {
-    questionCodeIndex =  questionCodeIndex != CODE_LIST_SIZE-1? questionCodeIndex+1: 0;
-    } else {
-      if (currentQuestion == 0) {
-        q0Index = q0Index != q0Size-1? q0Index+1: 0;
-      } else if (currentQuestion == 1) {
-        q1Index = q1Index != q1Size-1? q1Index+1: 0;
+    if (currentQuestion == 0) {
+      if (gameState == 0) {
+        q0SelectIndex = q0SelectIndex != CODE_LIST_SIZE-1? q0SelectIndex+1: 0;
       } else {
-        q2Index = q2Index != q2Size-1? q2Index+1: 0;
+        q0ValueIndex = q0ValueIndex != q0Size-1? q0ValueIndex+1: 0;
+      }
+    } else if (currentQuestion == 1) {
+      if (gameState == 0) {
+        q1SelectIndex = q1SelectIndex != CODE_LIST_SIZE-1? q1SelectIndex+1: 0;
+      } else {
+        q1ValueIndex = q1ValueIndex != q1Size-1? q1ValueIndex+1: 0;
+      }
+    } else {
+      if (gameState == 0) {
+        q2SelectIndex = q2SelectIndex != CODE_LIST_SIZE-1? q2SelectIndex+1: 0;
+      } else {
+        q2ValueIndex = q2ValueIndex != q2Size-1? q2ValueIndex+1: 0;
       }
     }
   }
@@ -145,25 +177,11 @@ void handleVertical(bool up) {
 
 void handlePress() {
   if (gameState == 0) {
-    if (currentQuestion == 0) {
-      q0Code = QUESTION_CODE_LIST[questionCodeIndex];
-      q0Values = QUESTION_VALUES_LIST[questionCodeIndex];
-      q0Size = QUESTION_VALUES_LIST_SIZES[questionCodeIndex];
-      currentQuestion = currentQuestion+1;
-    } else if (currentQuestion == 1) {
-      q1Code = QUESTION_CODE_LIST[questionCodeIndex];
-      q1Values = QUESTION_VALUES_LIST[questionCodeIndex];
-      q1Size = QUESTION_VALUES_LIST_SIZES[questionCodeIndex];
-      currentQuestion = currentQuestion+1;
-    } else {
-      q2Code = QUESTION_CODE_LIST[questionCodeIndex];
-      q2Values = QUESTION_VALUES_LIST[questionCodeIndex];
-      q2Size = QUESTION_VALUES_LIST_SIZES[questionCodeIndex];
-      gameState = 1;
-    } 
-  }else {
-    reset();
-  }   
+    gameState = 1;
+  }
+  // else {
+  //   reset();
+  // }   
 }
 // Control LEDs
 void updateLEDs() {
@@ -189,27 +207,23 @@ void loop() {
     } else if (yCoord < 200) {
       handleVertical(false);
       lastJoystickTime = currentTime;
-    } else if (gameState == 1 && xCoord > 900) {
+    } else if (xCoord > 900) {
       handleHorizontal(true);
       lastJoystickTime = currentTime;
-    }else if (gameState == 1 && xCoord < 200) {
+    }else if (xCoord < 200) {
       handleHorizontal(false);
       lastJoystickTime = currentTime;
     } 
+  }
+  updateLEDs();
+
+  if (currentQuestion == 0) {
+    gameState == 0? sevseg.setNumber(QUESTION_CODE_LIST[q0SelectIndex]): sevseg.setChars(q0Values[q0ValueIndex]);
+  } else if (currentQuestion == 1) {
+    gameState == 0? sevseg.setNumber(QUESTION_CODE_LIST[q1SelectIndex]): sevseg.setChars(q1Values[q1ValueIndex]);
   } else {
-    updateLEDs();
+    gameState == 0? sevseg.setNumber(QUESTION_CODE_LIST[q2SelectIndex]): sevseg.setChars(q2Values[q2ValueIndex]);
   }
 
-  if (gameState == 0) {
-      sevseg.setNumber(QUESTION_CODE_LIST[questionCodeIndex]);
-  } else {
-    if (currentQuestion == 0) {
-      sevseg.setChars(q0Values[q0Index]);
-    } else if (currentQuestion == 1) {
-      sevseg.setChars(q1Values[q1Index]);
-    } else {
-      sevseg.setChars(q2Values[q2Index]);
-    }
-  }
   sevseg.refreshDisplay();
 }
